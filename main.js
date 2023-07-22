@@ -1,5 +1,9 @@
 let carritoVisible = false;
 
+function getCarritoFromLocalStorage() {
+    return JSON.parse(localStorage.getItem('carrito')) || [];
+}
+
 if(document.readyState == 'loading'){
     document.addEventListener('DOMContentLoaded', ready)
 }else{
@@ -27,7 +31,11 @@ function ready(){
         let button = botonesAgregarAlCarrito[i];
         button.addEventListener('click', agregarAlCarritoClicked);
     }
-    document.getElementsByClassName('btn-pagar')[0].addEventListener('click',pagarClicked)
+    let carritoEnStorage = getCarritoFromLocalStorage();
+    carritoEnStorage.forEach((item) => {
+        agregarItemAlCarrito(item.titulo, item.precio, item.imagenSrc);
+    });
+    document.getElementsByClassName('btn-pagar')[0].addEventListener('click',pagarClicked);
 }
 
 function pagarClicked(){
@@ -36,6 +44,7 @@ function pagarClicked(){
     while (carritoItems.hasChildNodes()){
         carritoItems.removeChild(carritoItems.firstChild)
     }
+    localStorage.removeItem('carrito');
     actualizarTotalCarrito();
     ocultarCarrito();
 }
@@ -68,6 +77,9 @@ function agregarItemAlCarrito(titulo, precio, imagenSrc){
     item.classList.add = ('item');
     let itemsCarrito = document.getElementsByClassName('carrito-items')[0];
     let nombresItemsCarrito = itemsCarrito.getElementsByClassName('carrito-item-titulo');
+    let carritoEnStorage = getCarritoFromLocalStorage();
+    carritoEnStorage.push({ titulo, precio, imagenSrc });
+    localStorage.setItem('carrito', JSON.stringify(carritoEnStorage));
     for(let i=0;i < nombresItemsCarrito.length;i++){
         if(nombresItemsCarrito[i].innerText==titulo){
             alert("El item ya se encuentra en el carrito");
@@ -128,9 +140,13 @@ function restarCantidad(event){
 
 function eliminarItemCarrito(event){
     let buttonClicked = event.target;
+    let titulo = buttonClicked.parentElement.parentElement.querySelector('.carrito-item-titulo').innerText;
     buttonClicked.parentElement.parentElement.remove();
     actualizarTotalCarrito();
     ocultarCarrito();
+    let carritoEnStorage = getCarritoFromLocalStorage();
+    carritoEnStorage = carritoEnStorage.filter((item) => item.titulo !== titulo);
+    localStorage.setItem('carrito', JSON.stringify(carritoEnStorage));
 }
 
 function ocultarCarrito(){
